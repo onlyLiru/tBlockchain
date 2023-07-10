@@ -1,5 +1,6 @@
 const vorpal = require("vorpal")();
 const { myBlockChain, Block } = require("./ChainClass");
+const { Keypair } = require("./rsa");
 
 vorpal.command("mine <who> <amount>", "挖矿").action(function (args, callback) {
   myBlockChain.addBlock(
@@ -26,7 +27,43 @@ vorpal
   .command("trade <from> <to> <amount>", "交易")
   .action(function (args, callback) {
     const { from, to, amount } = args;
-    myBlockChain.trade(from, to, amount);
+    const signature = new Keypair().sign({
+      from,
+      to,
+      amount,
+    });
+
+    myBlockChain.trade(from, to, amount, signature);
+    callback();
+  });
+
+vorpal.command("balance <address>", "🈷余额").action(function (args, callback) {
+  const { address } = args;
+  const balance = myBlockChain.balance(address);
+  this.log(balance);
+  callback();
+});
+
+vorpal.command("keypair", "生成公私钥").action(function (args, callback) {
+  const keypairs = new Keypair().genKeyPair();
+  this.log(keypairs);
+  callback();
+});
+
+vorpal
+  .command("sign  <from> <to> <amount>", "交易签名")
+  .action(function (args, callback) {
+    const { from, to, amount } = args;
+    const keypair = new Keypair();
+    const derSign = keypair.sign({
+      from,
+      to,
+      amount,
+    });
+    // console.log(keypair.key)
+    // this.log(keypair.key.sign(`${from}-${to}-${amount}`).toDER())
+    this.log(keypair.key.verify(`${from}-${to}-${amount}`, derSign));
+    this.log(keypair.key.verify(`${from}-${to}-10`, derSign));
     callback();
   });
 

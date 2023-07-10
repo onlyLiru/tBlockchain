@@ -40,12 +40,34 @@ class BlockChain {
     return true;
   };
 
-  trade = (from, to, amount) => {
+  trade = (from, to, amount, signature) => {
     this.data.push({
       from,
       to,
       amount,
+      signature,
     });
+  };
+
+  balance = (address) => {
+    let total = 0;
+    this.chain
+      .map((chain) => {
+        return chain.data;
+      })
+      .forEach((data) => {
+        if (Array.isArray(data)) {
+          data.forEach((obj) => {
+            if (obj.to === address) {
+              total += obj.amount;
+            }
+            if (obj.from === address) {
+              total -= obj.amount;
+            }
+          });
+        }
+      });
+    return total;
   };
 }
 
